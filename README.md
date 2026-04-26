@@ -121,7 +121,7 @@ No fake submissions. No guesswork. Every task verified.
 | Frontend | React + TypeScript |
 | Styling | Tailwind CSS |
 | Animations | Framer Motion |
-| AI Verification | Google Gemini API (`@google/genai`) |
+| AI Verification | GROQ API  |
 | Routing | Internal SPA state (App.tsx) |
 | Auth (prototype) | Mock login — Firebase Auth ready |
 | Hosting | Vercel |
@@ -159,7 +159,7 @@ campbridge/
 
 ### Prerequisites
 - Node.js v18+
-- A free Google AI Studio API key → [aistudio.google.com](https://aistudio.google.com)
+- A free Groq API Key
 
 ### Installation
 
@@ -173,9 +173,9 @@ cd campbridge
 # Install dependencies
 npm install
 
-# Add your Gemini API key
+# Add your GROQ API key
 # Create a .env file in the root:
-echo "VITE_GEMINI_API_KEY=your_api_key_here" > .env
+echo "VITE_GROQ_API_KEY=your_api_key_here" > .env
 
 # Start the development server
 npm run dev
@@ -244,8 +244,6 @@ MIT License — feel free to build on top of this.
 ---
 
 ## 🙏 Acknowledgements
-
-- [Google AI Studio](https://aistudio.google.com) — Gemini API for AI verification
 - [UnsaidTalks](https://unsaidtalks.com) — AICore Connect Hackathon organizers
 - [Vercel](https://vercel.com) — Free hosting
 
