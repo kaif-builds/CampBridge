@@ -19,9 +19,7 @@ https://campbridge.vercel.app/
 ---
 
 ## 🎬 Demo Video
-
-> 📹 **[Click here to watch the full demo walkthrough](#)**
-> *(Replace this link with your screen recording URL)*
+https://youtu.be/5F3dlS0P7LY
 
 ---
 
