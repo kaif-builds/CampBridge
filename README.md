@@ -51,25 +51,12 @@ It's a dual-sided platform where:
 ### Task Submission + AI Verification
 <img width="1462" height="781" alt="Screenshot 2026-04-26 at 5 22 25 PM" src="https://github.com/user-attachments/assets/d63b9bf1-24fc-42d6-a446-f8fcc2a1057f" />
 
-### Leaderboard
-<!-- SCREENSHOT: Global and brand leaderboard -->
-![Leaderboard]()
 
-### Rewards System
-<!-- SCREENSHOT: Rewards page with badges and progress -->
-![Rewards]()
 
-### Manager Dashboard
-<!-- SCREENSHOT: Manager dashboard overview -->
-![Manager Dashboard]()
-
-### Submission Review Panel
-<!-- SCREENSHOT: AI pre-verified submissions queue -->
-![Submission Review]()
 
 ### For Partners Page
-<!-- SCREENSHOT: Partners page with pricing -->
-![For Partners]()
+<img width="1462" height="702" alt="Screenshot 2026-04-26 at 5 27 21 PM" src="https://github.com/user-attachments/assets/d5362168-dab3-4caf-8466-17ed28f11e3d" />
+
 
 ---
 
