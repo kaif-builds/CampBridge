@@ -9,6 +9,13 @@
 
 ---
 
+---
+
+## 🌐 Live Demo
+🔗 **[https://campbridge.vercel.app/](#)**
+
+---
+
 ## 🎬 Demo Video
 
 > 📹 **[Click here to watch the full demo walkthrough](#)**
@@ -241,14 +248,7 @@ Week 3 in Global Top 10  →  🎉 Reward Eligible!
 Top 3 in any single week →  Instant "Star Performer" badge
 ```
 
----
 
-## 🌐 Live Demo
-
-> 🔗 **[campbridge.vercel.app](#)**
-> *(Replace with your deployed Vercel URL)*
-
----
 
 ## 📄 License
 
