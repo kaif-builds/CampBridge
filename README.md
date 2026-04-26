@@ -256,15 +256,6 @@ Top 3 in any single week →  Instant "Star Performer" badge
 
 ---
 
-## 👥 Team
-
-| Name | Role |
-|---|---|
-| [Your Name] | Full Stack Developer |
-| [Teammate] | UI/UX + Frontend |
-
----
-
 ## 📄 License
 
 MIT License — feel free to build on top of this.
@@ -276,7 +267,6 @@ MIT License — feel free to build on top of this.
 - [Google AI Studio](https://aistudio.google.com) — Gemini API for AI verification
 - [UnsaidTalks](https://unsaidtalks.com) — AICore Connect Hackathon organizers
 - [Vercel](https://vercel.com) — Free hosting
-- [Supabase](https://supabase.com) — Database infrastructure
 
 ---
 
