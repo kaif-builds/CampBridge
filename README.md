@@ -5,9 +5,7 @@
 > Turn your campus ambassador program from a WhatsApp group into a structured, AI-powered growth engine.
 
 ---
-
-<!-- SCREENSHOT: Landing page hero -->
-![CampBridge Landing Page]()
+<img width="1455" height="777" alt="Screenshot 2026-04-26 at 5 20 28 PM" src="https://github.com/user-attachments/assets/871b6d8f-b85e-4c6b-b442-3f5064ca8445" />
 
 ---
 
@@ -38,17 +36,13 @@ It's a dual-sided platform where:
 
 ## 🖥️ Screenshots
 
-### Landing Page
-<!-- SCREENSHOT: Full landing page -->
-![Landing Page]()
 
 ### Ambassador Dashboard
-<!-- SCREENSHOT: Ambassador dashboard with tasks -->
-![Ambassador Dashboard]()
+<img width="1455" height="708" alt="Screenshot 2026-04-26 at 5 21 26 PM" src="https://github.com/user-attachments/assets/38ff93fa-5d24-419e-bc71-4c7b6670a2ad" />
+
 
 ### Task Submission + AI Verification
-<!-- SCREENSHOT: Proof upload and AI score result -->
-![AI Verification]()
+<img width="1462" height="781" alt="Screenshot 2026-04-26 at 5 22 25 PM" src="https://github.com/user-attachments/assets/d63b9bf1-24fc-42d6-a446-f8fcc2a1057f" />
 
 ### Leaderboard
 <!-- SCREENSHOT: Global and brand leaderboard -->
