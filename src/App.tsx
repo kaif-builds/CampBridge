@@ -1,11 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowRight, ChevronDown, UploadCloud, CheckCircle, XCircle, User, LayoutDashboard, ShieldCheck, Trophy, Gift, Lock, Medal, Star, Award, History, Clock } from 'lucide-react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
-// Groq API for AI verification
-
 import { ManagerLayout } from './components/ManagerLayout';
-
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
 const Bird = ({ className }: { className: string }) => (
   <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -152,6 +148,8 @@ export default function App() {
   const [aiState, setAiState] = useState('idle');
   const [proofImage, setProofImage] = useState<string | null>(null);
   const [aiFeedback, setAiFeedback] = useState<any>(null);
+  const [followUpAnswers, setFollowUpAnswers] = useState<string[]>([]);
+  const [aiError, setAiError] = useState<string | null>(null);
   const [appliedBrands, setAppliedBrands] = useState<number[]>([]);
   const [applyingToBrand, setApplyingToBrand] = useState<any>(null);
   const [toastMessage, setToastMessage] = useState('');
@@ -232,59 +230,75 @@ export default function App() {
   const handleAIReview = async () => {
     if (!proofImage) return;
     setAiState('analyzing');
+    setAiError(null);
     
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROQ_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'llama-4-scout-17b-16e-instruct',
-          messages: [
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: proofImage,
-                  },
-                },
-                {
-                  type: 'text',
-                  text: `You are a task verification AI. Verify if this image fulfills the task: "${selectedTask.title}". The instructions were: Please post a creative story featuring our product on your campus. Tell me if you think it's valid. Also come up with a score (0 to 100). If you have any suspicions, create some follow up questions.
+      // Strip data URL prefix to get raw base64
+      const base64Data = proofImage.replace(/^data:image\/[a-z]+;base64,/, '');
+      const taskDescription = selectedTask?.title || 'Complete the assigned task';
 
-Respond ONLY with valid JSON in this exact format:
-{"score": <number 0-100>, "approved": <true or false>, "questions": [<array of follow-up question strings, or empty array if all looks good>]}`,
-                },
-              ],
-            },
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.3,
-          max_tokens: 512,
+      const response = await fetch('/api/analyze-proof', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: base64Data,
+          taskDescription,
         }),
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData?.error?.message || `Groq API error: ${response.status}`);
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData?.error || `Server error: ${response.status}`);
       }
 
       const data = await response.json();
-      const resData = JSON.parse(data.choices[0].message.content || '{}');
-      setAiFeedback(resData);
-      
-      if (resData.questions && resData.questions.length > 0) {
-         setAiState('questions');
-      } else {
-         setAiState('done');
+      setAiFeedback({ questions: data.questions });
+      setFollowUpAnswers(new Array(data.questions.length).fill(''));
+      setAiState('questions');
+    } catch (err: any) {
+      console.error('AI Review error:', err);
+      setAiError(err.message || 'Failed to analyze proof. Please try again.');
+      setAiState('idle');
+    }
+  };
+
+  const handleSubmitAnswers = async () => {
+    if (!aiFeedback?.questions || followUpAnswers.some(a => !a.trim())) return;
+    setAiState('analyzing-2');
+    setAiError(null);
+
+    try {
+      const base64Data = proofImage ? proofImage.replace(/^data:image\/[a-z]+;base64,/, '') : undefined;
+      const taskDescription = selectedTask?.title || 'Complete the assigned task';
+
+      const response = await fetch('/api/score-submission', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questions: aiFeedback.questions,
+          answers: followUpAnswers,
+          taskDescription,
+          imageBase64: base64Data,
+        }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData?.error || `Server error: ${response.status}`);
       }
-    } catch (err) {
-      console.error(err);
-      setAiState('idle'); // revert on error
+
+      const data = await response.json();
+      setAiFeedback((prev: any) => ({
+        ...prev,
+        score: data.score,
+        feedback: data.feedback,
+        approved: data.approved,
+      }));
+      setAiState('done');
+    } catch (err: any) {
+      console.error('Score submission error:', err);
+      setAiError(err.message || 'Failed to score submission. Please try again.');
+      setAiState('questions');
     }
   };
 
@@ -1324,6 +1338,16 @@ Respond ONLY with valid JSON in this exact format:
             {selectedTask?.desc || 'Please complete the requirements as specified. Ensure your proof clearly demonstrates completion.'} Make sure the content is visible and adheres to brand guidelines.
          </p>
 
+         {aiError && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+               <XCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+               <div>
+                  <div className="font-bold text-red-700 text-sm">Something went wrong</div>
+                  <div className="text-red-600 text-xs mt-1">{aiError}</div>
+               </div>
+            </div>
+         )}
+
          {aiState === 'idle' && (
            <>
              <div 
@@ -1370,25 +1394,38 @@ Respond ONLY with valid JSON in this exact format:
          )}
 
          {aiState === 'questions' && aiFeedback && (
-           <div className="bg-blue-50/50 rounded-2xl p-8 border border-blue-100 mb-6">
-              <h3 className="font-serif text-xl text-[#1D2B5D] mb-6 flex items-center gap-2">
-                 <span className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">🤖</span>
-                 AI Verification Follow-up
-              </h3>
-              <div className="space-y-6 mb-8">
-                 {aiFeedback.questions.map((q: string, idx: number) => (
-                   <div key={idx}>
-                      <label className="block text-sm font-bold text-[#1D2B5D] mb-3">{q}</label>
-                      <input autoFocus={idx === 0} placeholder="Your answer..." className="w-full bg-white border border-[#1D2B5D]/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-[#1D2B5D]" />
-                   </div>
-                 ))}
-              </div>
-              <button onClick={() => {
-                setAiState('analyzing-2');
-                setTimeout(() => setAiState('done'), 2000);
-              }} className="bg-[#29426D] text-white px-8 py-3 rounded-full font-bold text-[15px] shadow-sm hover:shadow-md transition-all">Submit Answers</button>
-           </div>
-         )}
+            <div className="bg-blue-50/50 rounded-2xl p-8 border border-blue-100 mb-6">
+               <h3 className="font-serif text-xl text-[#1D2B5D] mb-6 flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">🤖</span>
+                  AI Verification Follow-up
+               </h3>
+               <div className="space-y-6 mb-8">
+                  {aiFeedback.questions.map((q: string, idx: number) => (
+                    <div key={idx}>
+                       <label className="block text-sm font-bold text-[#1D2B5D] mb-3">{idx + 1}. {q}</label>
+                       <input
+                         autoFocus={idx === 0}
+                         placeholder="Your answer..."
+                         value={followUpAnswers[idx] || ''}
+                         onChange={(e) => {
+                           const updated = [...followUpAnswers];
+                           updated[idx] = e.target.value;
+                           setFollowUpAnswers(updated);
+                         }}
+                         className="w-full bg-white border border-[#1D2B5D]/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-[#1D2B5D]"
+                       />
+                    </div>
+                  ))}
+               </div>
+               <button
+                 onClick={handleSubmitAnswers}
+                 disabled={followUpAnswers.some(a => !a.trim())}
+                 className={`px-8 py-3 rounded-full font-bold text-[15px] shadow-sm hover:shadow-md transition-all ${followUpAnswers.some(a => !a.trim()) ? 'bg-[#29426D]/50 text-white/70 cursor-not-allowed' : 'bg-[#29426D] text-white'}`}
+               >
+                 Submit Answers
+               </button>
+            </div>
+          )}
 
          {aiState === 'analyzing-2' && (
            <div className="py-16 text-center">
@@ -1398,35 +1435,39 @@ Respond ONLY with valid JSON in this exact format:
          )}
 
          {aiState === 'done' && aiFeedback && (
-           <div className="text-center py-10">
-              {aiFeedback.approved ? (
-                <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                   <CheckCircle className="w-12 h-12 text-green-600" />
-                </div>
-              ) : (
-                <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                   <XCircle className="w-12 h-12 text-red-600" />
-                </div>
-              )}
-              
-              <h3 className="font-serif text-[28px] text-[#1D2B5D] mb-2 font-medium">AI Score: {aiFeedback.score}%</h3>
-              
-              {aiFeedback.approved ? (
-                <>
-                  <p className="text-[#1D2B5D]/70 mb-6 text-[15px]">Submitted for review.</p>
-                  <div className="font-bold text-lg text-yellow-600 mb-10 bg-yellow-50 inline-block px-6 py-2 rounded-xl border border-yellow-200">
-                     +{selectedTask?.pts || 50} Points Pending Verification
-                  </div>
-                </>
-              ) : (
-                <p className="text-[#1D2B5D]/70 mb-10 text-[15px]">The submission didn't meet the requirements for this task.</p>
-              )}
-              
-              <div>
-                 <button onClick={() => { setAiState('idle'); setProofImage(null); setCurrentView('dashboard'); }} className="bg-[#1D2B5D] text-white rounded-full px-10 py-3.5 font-bold hover:bg-[#1A2B60] transition-colors shadow-lg hover:-translate-y-0.5">Back to Tasks</button>
-              </div>
-           </div>
-         )}
+            <div className="text-center py-10">
+               {aiFeedback.approved ? (
+                 <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle className="w-12 h-12 text-green-600" />
+                 </div>
+               ) : (
+                 <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <XCircle className="w-12 h-12 text-red-600" />
+                 </div>
+               )}
+               
+               <h3 className="font-serif text-[28px] text-[#1D2B5D] mb-2 font-medium">AI Score: {aiFeedback.score}%</h3>
+
+               {aiFeedback.feedback && (
+                 <p className="text-[#1D2B5D]/60 mb-6 text-sm max-w-md mx-auto italic">"{aiFeedback.feedback}"</p>
+               )}
+               
+               {aiFeedback.approved ? (
+                 <>
+                   <p className="text-[#1D2B5D]/70 mb-6 text-[15px]">Submitted for review.</p>
+                   <div className="font-bold text-lg text-yellow-600 mb-10 bg-yellow-50 inline-block px-6 py-2 rounded-xl border border-yellow-200">
+                      +{selectedTask?.pts || 50} Points Pending Verification
+                   </div>
+                 </>
+               ) : (
+                 <p className="text-[#1D2B5D]/70 mb-10 text-[15px]">The submission didn't meet the requirements for this task.</p>
+               )}
+               
+               <div>
+                  <button onClick={() => { setAiState('idle'); setProofImage(null); setAiFeedback(null); setFollowUpAnswers([]); setAiError(null); setCurrentView('dashboard'); }} className="bg-[#1D2B5D] text-white rounded-full px-10 py-3.5 font-bold hover:bg-[#1A2B60] transition-colors shadow-lg hover:-translate-y-0.5">Back to Tasks</button>
+               </div>
+            </div>
+          )}
       </div>
     </DashboardLayout>
   );

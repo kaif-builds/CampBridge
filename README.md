@@ -258,3 +258,10 @@ MIT License — feel free to build on top of this.
 *CampBridge — Real tasks. AI-verified proof. Fair leaderboards. Genuine rewards.*
 
 </div>
+
+## 🌩️ Serverless Deploy to Vercel
+
+1. Push to GitHub
+2. Import in Vercel dashboard
+3. Add `GROQ_API_KEY` in Settings → Environment Variables
+4. Deploy — the `/api/` serverless functions will handle AI verification securely
